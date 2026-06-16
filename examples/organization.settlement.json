@@ -1,0 +1,12 @@
+{
+  "settlementAccounts": [
+    {
+      "id": "ARB",
+      "address": "0xUSER_PROVIDED_WALLET_ADDRESS",
+      "tokens": [
+        { "id": "USDC", "enabled": true },
+        { "id": "ETH", "enabled": false }
+      ]
+    }
+  ]
+}

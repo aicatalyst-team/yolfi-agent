@@ -1,0 +1,4 @@
+{
+  "webhookUrl": "https://example.com/api/webhooks/yolfi",
+  "webhookAdapter": "STRIPE"
+}

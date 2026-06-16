@@ -1,0 +1,13 @@
+{
+  "name": "Pro Monthly",
+  "description": "Monthly recurring access.",
+  "type": "RECURRING",
+  "price": "29",
+  "currency": "USD",
+  "recurringInterval": "MONTH",
+  "collectEmail": true,
+  "metadata": {
+    "source": "agent",
+    "plan": "pro_monthly"
+  }
+}

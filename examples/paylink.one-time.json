@@ -1,0 +1,12 @@
+{
+  "name": "Premium Download",
+  "description": "One-time access to a digital product.",
+  "type": "ONE_TIME",
+  "price": "19",
+  "currency": "USD",
+  "collectEmail": true,
+  "metadata": {
+    "source": "agent",
+    "productSlug": "premium-download"
+  }
+}

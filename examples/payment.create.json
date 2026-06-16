@@ -1,0 +1,9 @@
+{
+  "paylinkId": "USER_OR_AGENT_CREATED_PAYLINK_ID",
+  "network": "ARB",
+  "symbol": "USDC",
+  "customerEmail": "customer@example.com",
+  "metadata": {
+    "source": "agent-smoke-test"
+  }
+}
