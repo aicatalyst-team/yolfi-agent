@@ -18,3 +18,18 @@ test('destructive MCP tools are clearly marked', () => {
   assert.ok(disableTool.description.includes('destructive'));
   assert.equal(disableTool.inputSchema.properties.confirm.const, true);
 });
+
+test('MCP tools expose titles and argument descriptions for registry scanners', () => {
+  const capabilities = createMcpCapabilities();
+
+  for (const tool of capabilities.tools) {
+    assert.equal(typeof tool.title, 'string', `${tool.name} title`);
+    assert.ok(tool.title.length > 0, `${tool.name} title`);
+    assert.ok(tool.description.length > 40, `${tool.name} description`);
+
+    for (const [propertyName, propertySchema] of Object.entries(tool.inputSchema.properties)) {
+      assert.equal(typeof propertySchema.description, 'string', `${tool.name}.${propertyName} description`);
+      assert.ok(propertySchema.description.length > 0, `${tool.name}.${propertyName} description`);
+    }
+  }
+});

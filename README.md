@@ -1,16 +1,18 @@
-![Yolfi Agent Kit: AI agent payment integration for crypto checkout, payment links, MCP, CLI, SDK, and webhooks](assets/yolfi-agent-banner.svg)
+![Yolfi Agent Kit: AI agent payment integration for crypto checkout, payment links, MCP, CLI, SDK, and webhooks](assets/ai-agent-payment.jpg)
 
 # Yolfi Agent Kit
 
 [![npm version](https://img.shields.io/npm/v/@yolfi/agent.svg)](https://www.npmjs.com/package/@yolfi/agent)
 [![license](https://img.shields.io/npm/l/@yolfi/agent.svg)](LICENSE)
 [![Node.js 18+](https://img.shields.io/badge/node-%3E%3D18-0b7f79)](package.json)
+[![Yolfi MCP server](https://glama.ai/mcp/servers/yolfinance/yolfi-agent/badges/card.svg)](https://glama.ai/mcp/servers/yolfinance/yolfi-agent)
+[![Yolfi MCP score](https://glama.ai/mcp/servers/yolfinance/yolfi-agent/badges/score.svg)](https://glama.ai/mcp/servers/yolfinance/yolfi-agent)
 
 AI agent payment integration for crypto checkout. Yolfi Agent Kit is a JSON-first SDK, CLI, Agent Skill, and MCP server that lets AI coding agents add stablecoin checkout, payment links, payment status checks, webhook verification, and webhook-based access logic to applications through Yolfi.
 
 Use `@yolfi/agent` when Codex, Claude Code, Cursor, OpenClaw, an MCP host, or a custom AI agent can build the product but still needs a reliable payment API to register a Yolfi workspace, create a paylink, configure webhooks, and verify crypto payment status without sending the user through manual dashboard setup.
 
-[Website](https://yolfi.com) | [Agent Kit](https://yolfi.com/ai-agent-kit) | [Docs](https://docs.yolfi.com/en/agent-kit) | [npm](https://www.npmjs.com/package/@yolfi/agent) | [GitHub](https://github.com/yolfinance/yolfi-agent) | [Guide](https://yolfi.com/blog/ai-agent-payment-integration-api)
+[Website](https://yolfi.com) | [Agent Kit](https://yolfi.com/ai-agent-kit) | [Docs](https://docs.yolfi.com/en/agent-kit) | [npm](https://www.npmjs.com/package/@yolfi/agent) | [GitHub](https://github.com/yolfinance/yolfi-agent) | [Glama](https://glama.ai/mcp/servers/yolfinance/yolfi-agent) | [Guide](https://yolfi.com/blog/ai-agent-payment-integration-api)
 
 ## Languages
 
@@ -384,4 +386,5 @@ Yolfi Agent Kit is the package entry point for those workflows.
 - Full LLM context: <https://docs.yolfi.com/llms-full.txt>
 - npm package: <https://www.npmjs.com/package/@yolfi/agent>
 - GitHub repo: <https://github.com/yolfinance/yolfi-agent>
+- Glama MCP listing: <https://glama.ai/mcp/servers/yolfinance/yolfi-agent>
 - Integration guide: <https://yolfi.com/blog/ai-agent-payment-integration-api>

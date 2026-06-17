@@ -1,4 +1,4 @@
-![Yolfi Agent Kit: AI 에이전트 결제 연동, 암호화폐 결제 페이지, 결제 링크, MCP, CLI, SDK, Webhook](../../assets/yolfi-agent-banner.svg)
+![Yolfi Agent Kit: AI 에이전트 결제 연동, 암호화폐 결제 페이지, 결제 링크, MCP, CLI, SDK, Webhook](../../assets/ai-agent-payment.jpg)
 
 # Yolfi Agent Kit
 

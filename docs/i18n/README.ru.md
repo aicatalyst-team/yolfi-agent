@@ -1,4 +1,4 @@
-![Yolfi Agent Kit: интеграция платежей для ИИ-агентов, криптовалютная страница оплаты, платежные ссылки, MCP, командная строка, SDK и Webhook-события](../../assets/yolfi-agent-banner.svg)
+![Yolfi Agent Kit: интеграция платежей для ИИ-агентов, криптовалютная страница оплаты, платежные ссылки, MCP, командная строка, SDK и Webhook-события](../../assets/ai-agent-payment.jpg)
 
 # Yolfi Agent Kit
 

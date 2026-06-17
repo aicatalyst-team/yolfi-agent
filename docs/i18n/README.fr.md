@@ -1,4 +1,4 @@
-![Yolfi Agent Kit : intégration de paiement pour agents IA, page de paiement crypto, liens de paiement, MCP, CLI, SDK et webhooks](../../assets/yolfi-agent-banner.svg)
+![Yolfi Agent Kit : intégration de paiement pour agents IA, page de paiement crypto, liens de paiement, MCP, CLI, SDK et webhooks](../../assets/ai-agent-payment.jpg)
 
 # Yolfi Agent Kit
 

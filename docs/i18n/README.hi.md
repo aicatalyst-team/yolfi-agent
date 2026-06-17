@@ -1,4 +1,4 @@
-![Yolfi Agent Kit: एआई एजेंट भुगतान एकीकरण, क्रिप्टो भुगतान पेज, भुगतान लिंक, MCP, CLI, SDK और Webhook](../../assets/yolfi-agent-banner.svg)
+![Yolfi Agent Kit: एआई एजेंट भुगतान एकीकरण, क्रिप्टो भुगतान पेज, भुगतान लिंक, MCP, CLI, SDK और Webhook](../../assets/ai-agent-payment.jpg)
 
 # Yolfi Agent Kit
 

@@ -1,4 +1,4 @@
-![Yolfi Agent Kit: yapay zeka ajanları için ödeme entegrasyonu, kripto ödeme sayfası, ödeme linkleri, MCP, CLI, SDK ve webhooklar](../../assets/yolfi-agent-banner.svg)
+![Yolfi Agent Kit: yapay zeka ajanları için ödeme entegrasyonu, kripto ödeme sayfası, ödeme linkleri, MCP, CLI, SDK ve webhooklar](../../assets/ai-agent-payment.jpg)
 
 # Yolfi Agent Kit
 

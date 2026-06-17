@@ -1,6 +1,12 @@
 import { YolfiClient, YolfiApiError } from './client.js';
 import { verifyWebhookSignature } from './webhooks.js';
 
+const PROTOCOL_VERSION = '2025-06-18';
+const SERVER_NAME = 'yolfi-agent-kit';
+const SERVER_TITLE = 'Yolfi Payments MCP';
+const SERVER_VERSION = '0.1.2';
+const WEBHOOK_ADAPTERS = ['NONE', 'STRIPE', 'LEMON_SQUEEZY', 'PADDLE', 'POLAR', 'GUMROAD', 'DODO'];
+
 function jsonSchema(properties, required = []) {
   return {
     type: 'object',
@@ -13,99 +19,113 @@ function jsonSchema(properties, required = []) {
 const tools = [
   {
     name: 'yolfi_auth_status',
-    description: 'Check the Yolfi workspace linked to YOLFI_API_KEY.',
+    title: 'Check Yolfi Auth Status',
+    description: 'Verify that YOLFI_API_KEY can authenticate and return the current Yolfi organization context before mutating payment settings.',
     inputSchema: jsonSchema({}),
   },
   {
     name: 'yolfi_organization_get',
-    description: 'Get the current Yolfi organization settings.',
+    title: 'Get Yolfi Organization',
+    description: 'Read the current Yolfi organization settings, including webhook and settlement configuration visible to this API key.',
     inputSchema: jsonSchema({}),
   },
   {
     name: 'yolfi_organization_update',
-    description: 'Update organization fields through the existing organization endpoint.',
+    title: 'Update Yolfi Organization',
+    description: 'Update organization profile fields through the existing Yolfi organization endpoint. Do not invent merchant identity, support email, webhook URL, or settlement settings.',
     inputSchema: jsonSchema({
-      name: { type: 'string' },
-      email: { type: 'string' },
-      webhookUrl: { type: 'string' },
-      webhookAdapter: { type: 'string', enum: ['NONE', 'STRIPE', 'LEMON_SQUEEZY', 'PADDLE', 'POLAR', 'GUMROAD', 'DODO'] },
+      name: { type: 'string', description: 'Merchant or project display name approved by the user.' },
+      email: { type: 'string', description: 'Merchant support or account email approved by the user.' },
+      webhookUrl: { type: 'string', description: 'HTTPS webhook endpoint in the target application. Ask the user if the backend URL is unknown.' },
+      webhookAdapter: { type: 'string', enum: WEBHOOK_ADAPTERS, description: 'Webhook adapter output format. Use NONE unless the target app expects a compatible provider payload.' },
     }),
   },
   {
     name: 'yolfi_settlement_configure',
-    description: 'Configure settlement wallets. The host must ask the user for wallet addresses and currencies first.',
+    title: 'Configure Yolfi Settlement Wallets',
+    description: 'Configure settlement wallets after the user provides wallet addresses, networks, and enabled tokens. Never invent wallet addresses.',
     inputSchema: jsonSchema({
       settlementAccounts: {
         type: 'array',
+        description: 'Settlement account objects accepted by the Yolfi organization endpoint. Example fields: id, address, tokens.',
         items: { type: 'object' },
       },
     }, ['settlementAccounts']),
   },
   {
     name: 'yolfi_webhooks_configure',
-    description: 'Configure the webhook URL and adapter. The host must not invent backend URLs.',
+    title: 'Configure Yolfi Webhooks',
+    description: 'Configure webhook delivery for the target app. The host must not invent backend URLs and must ensure the app verifies X-Yolfi-Signature.',
     inputSchema: jsonSchema({
-      url: { type: 'string' },
-      adapter: { type: 'string', enum: ['NONE', 'STRIPE', 'LEMON_SQUEEZY', 'PADDLE', 'POLAR', 'GUMROAD', 'DODO'] },
+      url: { type: 'string', description: 'HTTPS webhook URL in the target app, for example https://example.com/api/yolfi/webhook.' },
+      adapter: { type: 'string', enum: WEBHOOK_ADAPTERS, description: 'Webhook adapter output format. Defaults to NONE if omitted.' },
     }, ['url']),
   },
   {
     name: 'yolfi_paylinks_create',
-    description: 'Create a payment link. The host must ask the user for product, amount, currency, and one-time vs recurring choices.',
+    title: 'Create Yolfi Paylink',
+    description: 'Create a Yolfi payment link only after the user approves product name, amount, currency, and one-time or recurring payment type.',
     inputSchema: jsonSchema({
-      name: { type: 'string' },
-      description: { type: 'string' },
-      price: { type: 'string' },
-      currency: { type: 'string' },
-      type: { type: 'string' },
-      recurringInterval: { type: 'string' },
-      metadata: { type: 'object' },
-    }, ['name', 'price']),
+      name: { type: 'string', description: 'User-approved product, plan, donation, or access name shown on checkout.' },
+      description: { type: 'string', description: 'Optional user-approved customer-facing description.' },
+      price: { type: 'string', description: 'User-approved decimal price, represented as a string to avoid numeric rounding.' },
+      currency: { type: 'string', description: 'Fiat or account currency code approved by the user, for example USD.' },
+      type: { type: 'string', description: 'Payment link type approved by the user, for example ONE_TIME or RECURRING.' },
+      recurringInterval: { type: 'string', description: 'Recurring interval when creating a recurring payment link.' },
+      collectEmail: { type: 'boolean', description: 'Whether checkout should collect customer email.' },
+      metadata: { type: 'object', description: 'Safe non-secret metadata such as source, productSlug, planId, or environment.' },
+    }, ['name', 'price', 'currency', 'type']),
   },
   {
     name: 'yolfi_paylinks_list',
-    description: 'List existing Yolfi paylinks before creating duplicates.',
+    title: 'List Yolfi Paylinks',
+    description: 'List existing Yolfi paylinks before creating new ones so agents can avoid duplicates after retries or timeouts.',
     inputSchema: jsonSchema({
-      page: { type: 'number', default: 1 },
-      rows: { type: 'number', default: 10 },
+      page: { type: 'number', default: 1, description: 'Page number. Defaults to 1.' },
+      rows: { type: 'number', default: 10, description: 'Rows per page. Defaults to 10.' },
     }),
   },
   {
     name: 'yolfi_paylinks_get',
-    description: 'Get a private paylink by id.',
-    inputSchema: jsonSchema({ id: { type: 'string' } }, ['id']),
+    title: 'Get Yolfi Paylink',
+    description: 'Get private paylink details by ID for verification, checkout wiring, or duplicate detection.',
+    inputSchema: jsonSchema({ id: { type: 'string', description: 'Yolfi paylink ID returned by yolfi_paylinks_create or yolfi_paylinks_list.' } }, ['id']),
   },
   {
     name: 'yolfi_paylinks_disable',
-    description: 'Disable a paylink. This is destructive and requires explicit user confirmation.',
+    title: 'Disable Yolfi Paylink',
+    description: 'Disable a paylink. This is destructive and must only run after explicit user confirmation.',
     inputSchema: jsonSchema({
-      id: { type: 'string' },
-      confirm: { const: true },
+      id: { type: 'string', description: 'Yolfi paylink ID to disable.' },
+      confirm: { const: true, description: 'Must be true only after explicit user confirmation.' },
     }, ['id', 'confirm']),
   },
   {
     name: 'yolfi_payments_create',
-    description: 'Create a public payment invoice from a paylink for checkout testing or customer flow setup.',
+    title: 'Create Yolfi Public Payment',
+    description: 'Create a public payment invoice from an existing paylink for checkout integration, testing, or customer flow setup.',
     inputSchema: jsonSchema({
-      paylinkId: { type: 'string' },
-      network: { type: 'string' },
-      symbol: { type: 'string' },
-      customerEmail: { type: 'string' },
-      metadata: { type: 'object' },
+      paylinkId: { type: 'string', description: 'Yolfi paylink ID used to create the customer payment.' },
+      network: { type: 'string', description: 'Blockchain network identifier supported by the Yolfi organization, for example ARB.' },
+      symbol: { type: 'string', description: 'Payment token symbol supported on the selected network, for example USDC.' },
+      customerEmail: { type: 'string', description: 'Optional customer email for checkout or receipts.' },
+      metadata: { type: 'object', description: 'Safe non-secret metadata for the target app payment flow.' },
     }, ['paylinkId', 'network', 'symbol']),
   },
   {
     name: 'yolfi_payments_status',
-    description: 'Get public payment status. Do not treat redirect as proof of payment.',
-    inputSchema: jsonSchema({ id: { type: 'string' } }, ['id']),
+    title: 'Get Yolfi Payment Status',
+    description: 'Get public payment status by ID. Do not treat a frontend redirect as proof of payment.',
+    inputSchema: jsonSchema({ id: { type: 'string', description: 'Yolfi payment ID returned by yolfi_payments_create.' } }, ['id']),
   },
   {
     name: 'yolfi_webhooks_verify',
-    description: 'Verify an X-Yolfi-Signature HMAC over the raw JSON payload.',
+    title: 'Verify Yolfi Webhook Signature',
+    description: 'Verify an X-Yolfi-Signature HMAC over the raw JSON webhook payload before trusting payment events.',
     inputSchema: jsonSchema({
-      payload: { type: 'string' },
-      signature: { type: 'string' },
-      secret: { type: 'string' },
+      payload: { type: 'string', description: 'Raw webhook request body string, before JSON parsing.' },
+      signature: { type: 'string', description: 'X-Yolfi-Signature header value.' },
+      secret: { type: 'string', description: 'Optional explicit webhook secret. Defaults to YOLFI_WEBHOOK_SECRET or YOLFI_API_KEY.' },
     }, ['payload', 'signature']),
   },
 ];
@@ -255,18 +275,25 @@ async function handleMcpRequest(message) {
       jsonrpc: '2.0',
       id,
       result: {
-        protocolVersion: params?.protocolVersion || '2025-06-18',
+        protocolVersion: params?.protocolVersion || PROTOCOL_VERSION,
         capabilities: {
-          tools: {},
-          resources: {},
-          prompts: {},
+          tools: { listChanged: false },
+          resources: { listChanged: false },
+          prompts: { listChanged: false },
         },
         serverInfo: {
-          name: 'Yolfi Payments MCP',
-          version: '0.1.1',
+          name: SERVER_NAME,
+          title: SERVER_TITLE,
+          version: SERVER_VERSION,
         },
+        instructions:
+          'Use Yolfi tools to inspect the workspace, ask the user for wallet and pricing decisions, create or reuse paylinks, configure verified webhooks, and confirm payments through status checks or signed webhook events.',
       },
     };
+  }
+
+  if (method === 'ping') {
+    return { jsonrpc: '2.0', id, result: {} };
   }
 
   if (method === 'tools/list') {

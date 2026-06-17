@@ -1,4 +1,4 @@
-![Yolfi Agent Kit：面向 AI 代理的支付集成、加密货币支付页面、支付链接、MCP、命令行、SDK 和 Webhook](../../assets/yolfi-agent-banner.svg)
+![Yolfi Agent Kit：面向 AI 代理的支付集成、加密货币支付页面、支付链接、MCP、命令行、SDK 和 Webhook](../../assets/ai-agent-payment.jpg)
 
 # Yolfi Agent Kit
 

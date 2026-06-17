@@ -1,4 +1,4 @@
-![Yolfi Agent Kit: AIエージェント決済連携、暗号資産決済ページ、決済リンク、MCP、CLI、SDK、Webhook](../../assets/yolfi-agent-banner.svg)
+![Yolfi Agent Kit: AIエージェント決済連携、暗号資産決済ページ、決済リンク、MCP、CLI、SDK、Webhook](../../assets/ai-agent-payment.jpg)
 
 # Yolfi Agent Kit
 
