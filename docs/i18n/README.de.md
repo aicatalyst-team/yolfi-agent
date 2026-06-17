@@ -92,11 +92,9 @@ Private Befehle verwenden einen Yolfi-Organisations-API-Schlüssel:
 
 ```bash
 export YOLFI_API_KEY="yolfi_..."
-export YOLFI_API_BASE_URL="https://app.yolfi.com/api"
-export YOLFI_PAY_BASE_URL="https://pay.yolfi.com"
 ```
 
-`YOLFI_API_BASE_URL` und `YOLFI_PAY_BASE_URL` sind optional, außer du musst eine nicht standardmäßige Yolfi-Umgebung ansprechen.
+CLI und MCP-Server verwenden standardmäßig die Produktions-API und den Checkout von Yolfi.
 
 Wenn die Zielanwendung noch keinen `YOLFI_API_KEY` hat, kann ein Agent über den Agent-Registrierungsendpunkt einen Arbeitsbereich registrieren:
 
@@ -180,10 +178,11 @@ Yolfi Agent Kit enthält einen stdio-MCP-Server im selben npm-Paket:
 }
 ```
 
-`yolfi-api`-Tools rufen die Yolfi-API auf und benötigen `YOLFI_API_KEY`. `yolfi-knowledge`-Ressourcen helfen Agenten, den Integrationspfad zu verstehen, bevor ein Schlüssel vorhanden ist.
+`yolfi_agent_register` ruft den öffentlichen Agent-Registrierungsendpunkt auf und benötigt kein `YOLFI_API_KEY`. Private `yolfi-api`-Tools benötigen den API-Schlüssel, der nach der Registrierung zurückgegeben wird. `yolfi-knowledge`-Ressourcen helfen Agenten, den Integrationspfad zu verstehen, bevor ein Schlüssel vorhanden ist.
 
 Verfügbare MCP-Tools:
 
+- `yolfi_agent_register`
 - `yolfi_auth_status`
 - `yolfi_organization_get`
 - `yolfi_organization_update`
@@ -250,7 +249,7 @@ Yolfi Agent Kit erstellt keine zweite `/api/agent/*`-API. Es ordnet Agentenaktio
 
 | Agentenaktion | API-Endpunkt | Auth |
 | --- | --- | --- |
-| Yolfi-Arbeitsbereich registrieren | `POST /api/auth/agent/register` | public |
+| Yolfi-Arbeitsbereich registrieren | `POST /api/auth/agent/register` | public; kein API-Schlüssel erforderlich |
 | Konto prüfen | `GET /api/private/organization/current` | bearer API key |
 | Organisation, Webhook und Settlement-Wallets konfigurieren | `PUT /api/private/organization/current` | bearer API key |
 | API-Schlüsselstatus abrufen | `GET /api/private/organization/api-key` | bearer API key oder cookie |

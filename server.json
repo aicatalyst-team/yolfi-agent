@@ -27,24 +27,10 @@
       "environmentVariables": [
         {
           "name": "YOLFI_API_KEY",
-          "description": "Yolfi organization API key. Required for API tools that read or mutate organization, webhook, settlement, paylink, or transaction data.",
+          "description": "Optional at server startup. Required after registration for private API tools that read or mutate organization, webhook, settlement, paylink, or transaction data. Public agent registration works without it.",
           "format": "string",
-          "isRequired": true,
+          "isRequired": false,
           "isSecret": true
-        },
-        {
-          "name": "YOLFI_API_BASE_URL",
-          "description": "Optional Yolfi API base URL. Defaults to https://app.yolfi.com/api.",
-          "format": "string",
-          "isRequired": false,
-          "isSecret": false
-        },
-        {
-          "name": "YOLFI_PAY_BASE_URL",
-          "description": "Optional hosted checkout base URL. Defaults to https://pay.yolfi.com.",
-          "format": "string",
-          "isRequired": false,
-          "isSecret": false
         }
       ]
     }

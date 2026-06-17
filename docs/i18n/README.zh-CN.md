@@ -92,11 +92,9 @@ node packages/yolfi-agent/src/cli.js help
 
 ```bash
 export YOLFI_API_KEY="yolfi_..."
-export YOLFI_API_BASE_URL="https://app.yolfi.com/api"
-export YOLFI_PAY_BASE_URL="https://pay.yolfi.com"
 ```
 
-除非需要连接非默认的 Yolfi 环境，否则 `YOLFI_API_BASE_URL` 和 `YOLFI_PAY_BASE_URL` 都是可选的。
+CLI 和 MCP 服务器默认使用 Yolfi 的生产 API 和支付页面。
 
 如果目标应用还没有 `YOLFI_API_KEY`，代理可以通过代理注册接口注册工作区：
 
@@ -180,10 +178,11 @@ Yolfi Agent Kit 在同一个 npm 包中包含 stdio MCP 服务器：
 }
 ```
 
-`yolfi-api` 工具调用 Yolfi API，需要 `YOLFI_API_KEY`。`yolfi-knowledge` 资源可以在还没有密钥时帮助代理理解集成路径。
+`yolfi_agent_register` 调用公开的代理注册接口，不需要 `YOLFI_API_KEY`。私有 `yolfi-api` 工具需要注册后返回的 API 密钥。`yolfi-knowledge` 资源可以在还没有密钥时帮助代理理解集成路径。
 
 可用 MCP 工具：
 
+- `yolfi_agent_register`
 - `yolfi_auth_status`
 - `yolfi_organization_get`
 - `yolfi_organization_update`
@@ -250,7 +249,7 @@ Yolfi Agent Kit 不会创建第二套 `/api/agent/*` API。它把代理动作映
 
 | 代理动作 | API 接口 | 认证 |
 | --- | --- | --- |
-| 注册 Yolfi 工作区 | `POST /api/auth/agent/register` | public |
+| 注册 Yolfi 工作区 | `POST /api/auth/agent/register` | public；无需 API 密钥 |
 | 检查账户 | `GET /api/private/organization/current` | bearer API key |
 | 配置组织、Webhook、结算钱包 | `PUT /api/private/organization/current` | bearer API key |
 | 获取 API 密钥状态 | `GET /api/private/organization/api-key` | bearer API key 或 cookie |

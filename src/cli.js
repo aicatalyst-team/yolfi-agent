@@ -23,8 +23,8 @@ Usage:
 
 Env:
   YOLFI_API_KEY
-  YOLFI_API_BASE_URL=https://app.yolfi.com/api
-  YOLFI_PAY_BASE_URL=https://pay.yolfi.com
+
+Yolfi production API and checkout URLs are used by default.
 `;
 
 function parseArgs(argv) {

@@ -94,11 +94,9 @@ Private commands use a Yolfi organization API key:
 
 ```bash
 export YOLFI_API_KEY="yolfi_..."
-export YOLFI_API_BASE_URL="https://app.yolfi.com/api"
-export YOLFI_PAY_BASE_URL="https://pay.yolfi.com"
 ```
 
-`YOLFI_API_BASE_URL` and `YOLFI_PAY_BASE_URL` are optional unless you need a non-default Yolfi environment.
+The CLI and MCP server use Yolfi production API and checkout URLs by default.
 
 If the target app does not already have `YOLFI_API_KEY`, an agent can register a workspace through the agent registration endpoint:
 
@@ -182,10 +180,11 @@ Yolfi Agent Kit includes a stdio MCP server in the same npm package:
 }
 ```
 
-`yolfi-api` tools call the Yolfi API and require `YOLFI_API_KEY`. `yolfi-knowledge` resources help an agent understand the integration path before a key exists.
+`yolfi_agent_register` calls the public agent registration endpoint and does not require `YOLFI_API_KEY`. Private `yolfi-api` tools require the API key returned by registration. `yolfi-knowledge` resources help an agent understand the integration path before a key exists.
 
 Available MCP tools:
 
+- `yolfi_agent_register`
 - `yolfi_auth_status`
 - `yolfi_organization_get`
 - `yolfi_organization_update`
@@ -252,7 +251,7 @@ Yolfi Agent Kit does not create a second `/api/agent/*` API. It maps agent actio
 
 | Agent action | Backend endpoint | Auth |
 | --- | --- | --- |
-| Register Yolfi workspace | `POST /api/auth/agent/register` | public |
+| Register Yolfi workspace | `POST /api/auth/agent/register` | public; no API key required |
 | Check account | `GET /api/private/organization/current` | bearer API key |
 | Configure organization, webhook, settlement wallets | `PUT /api/private/organization/current` | bearer API key |
 | Get API key status | `GET /api/private/organization/api-key` | bearer API key or cookie |

@@ -28,6 +28,26 @@ function jsonSchema(properties, required = []) {
 
 const tools = [
   {
+    name: 'yolfi_agent_register',
+    title: 'Register Yolfi Workspace For Agent',
+    description: 'Register a Yolfi workspace through the public agent registration endpoint when no YOLFI_API_KEY exists yet. This returns an API key once; store it in an ignored env file or secret manager before using private tools.',
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: false,
+      idempotentHint: false,
+      openWorldHint: true,
+    },
+    inputSchema: jsonSchema({
+      agentName: { type: 'string', description: 'Name of the coding agent or MCP host, for example Codex, Claude Code, Cursor, or OpenClaw.' },
+      projectName: { type: 'string', description: 'User-approved product or project name for the Yolfi workspace.' },
+      projectUrl: { type: 'string', description: 'Optional public or local URL of the target product, if known.' },
+      integrationIntent: { type: 'string', description: 'User-approved reason for the integration, for example accept_payments, subscription, donation, or sell_digital_product.' },
+      language: { type: 'string', description: 'Optional preferred language code for agent-facing responses.' },
+      ref: { type: 'string', description: 'Optional source tag such as mcp, glama, npm, docs, codex, claude-code, or cursor.' },
+      metadata: { type: 'object', description: 'Optional safe non-secret metadata. Do not include API keys, wallet private keys, tokens, or personal secrets.' },
+    }, ['agentName', 'projectName']),
+  },
+  {
     name: 'yolfi_auth_status',
     title: 'Check Yolfi Auth Status',
     description: 'Verify that YOLFI_API_KEY can authenticate and return the current Yolfi organization context before mutating payment settings.',
@@ -231,8 +251,8 @@ const prompts = [
 ];
 
 const resourceText = {
-  'yolfi://docs/llms': '# Yolfi for AI agents\nUse @yolfi/agent or the Yolfi MCP tools to register a workspace, create paylinks, configure webhooks, and verify payment status.',
-  'yolfi://docs/agent-quickstart': '# Agent quickstart\n1. Check for YOLFI_API_KEY. 2. Register only if missing. 3. Ask for wallet, price, currency, and webhook URL. 4. Create paylink. 5. Store ids in env/config. 6. Verify payment status and webhook signature.',
+  'yolfi://docs/llms': '# Yolfi for AI agents\nUse @yolfi/agent or the Yolfi MCP tools to register a workspace, create paylinks, configure webhooks, and verify payment status. Registration is public and does not require YOLFI_API_KEY; private organization and paylink tools require the key returned by registration.',
+  'yolfi://docs/agent-quickstart': '# Agent quickstart\n1. Check for YOLFI_API_KEY. 2. If no key exists, call yolfi_agent_register or yolfi auth:agent-register; registration is public and does not need a key. 3. Store the returned key in an ignored env file or secret manager. 4. Ask for wallet, price, currency, and webhook URL. 5. Use private Yolfi tools with YOLFI_API_KEY. 6. Create paylink. 7. Store ids in env/config. 8. Verify payment status and webhook signature.',
   'yolfi://docs/webhooks': '# Webhooks\nYolfi signs the raw JSON payload with HMAC-SHA256 base64 in X-Yolfi-Signature. In v1 the secret is the organization API key.',
   'yolfi://docs/paylinks': '# Paylinks\nUse POST /api/private/paylinks/create with bearer API key. Do not create duplicate paylinks after timeout without listing existing paylinks first.',
   'yolfi://examples/codex': '# Codex\nUse npx -y @yolfi/agent help, inspect the target app, then use Yolfi tools to add checkout and webhook handling.',
@@ -285,6 +305,8 @@ export async function callMcpTool(name, args = {}, options = {}) {
 
   try {
     switch (name) {
+      case 'yolfi_agent_register':
+        return textResult('Yolfi workspace registered. Store the returned API key securely before calling private tools.', await client.registerAgent(args));
       case 'yolfi_auth_status':
       case 'yolfi_organization_get':
         return textResult('Yolfi organization loaded', await client.authStatus());

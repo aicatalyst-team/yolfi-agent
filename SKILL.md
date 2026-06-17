@@ -12,7 +12,7 @@ Use this when the user asks to add crypto payments, payment links, checkout, sub
 1. Inspect the target app first.
 2. Identify the framework, env system, server routes, existing checkout code, existing webhook handlers, and entitlement logic.
 3. Check whether `YOLFI_API_KEY` already exists in ignored env/config.
-4. If no key exists, register with `yolfi auth:agent-register` or the MCP registration docs.
+4. If no key exists, register with `yolfi auth:agent-register` or the MCP tool `yolfi_agent_register`; registration is public and does not require `YOLFI_API_KEY`.
 5. Ask the user for settlement wallet addresses. Never invent them.
 6. Ask the user for product name, price, currency, payment type, and recurring interval.
 7. Configure organization settlement/webhook settings through `PUT /api/private/organization/current`.

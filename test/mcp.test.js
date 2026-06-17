@@ -1,14 +1,37 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createMcpCapabilities, mcp } from '../src/mcp.js';
+import { callMcpTool, createMcpCapabilities, mcp } from '../src/mcp.js';
 
 test('MCP capabilities expose yolfi-api tools and yolfi-knowledge resources', () => {
   const capabilities = createMcpCapabilities();
 
   assert.ok(capabilities.tools.some((tool) => tool.name === 'yolfi_paylinks_create'));
+  assert.ok(capabilities.tools.some((tool) => tool.name === 'yolfi_agent_register'));
   assert.ok(capabilities.tools.some((tool) => tool.name === 'yolfi_webhooks_verify'));
   assert.ok(capabilities.resources.some((resource) => resource.uri === 'yolfi://docs/agent-quickstart'));
   assert.ok(capabilities.prompts.some((prompt) => prompt.name === 'integrate_yolfi_payments'));
+});
+
+test('MCP agent registration works without an API key', async () => {
+  const payload = {
+    agentName: 'Codex',
+    projectName: 'Space Shop',
+    integrationIntent: 'accept_payments',
+  };
+  const result = await callMcpTool('yolfi_agent_register', payload, {
+    client: {
+      registerAgent: async (received) => ({
+        success: true,
+        data: {
+          received,
+          apiKey: 'yolfi_test_key',
+        },
+      }),
+    },
+  });
+
+  assert.equal(result.structuredContent.success, true);
+  assert.deepEqual(result.structuredContent.data.data.received, payload);
 });
 
 test('destructive MCP tools are clearly marked', () => {

@@ -92,11 +92,9 @@ node packages/yolfi-agent/src/cli.js help
 
 ```bash
 export YOLFI_API_KEY="yolfi_..."
-export YOLFI_API_BASE_URL="https://app.yolfi.com/api"
-export YOLFI_PAY_BASE_URL="https://pay.yolfi.com"
 ```
 
-Varsayılan olmayan bir Yolfi ortamını hedeflemeniz gerekmiyorsa `YOLFI_API_BASE_URL` ve `YOLFI_PAY_BASE_URL` isteğe bağlıdır.
+CLI ve MCP sunucusu varsayılan olarak Yolfi'nin production API'sini ve ödeme sayfasını kullanır.
 
 Hedef uygulamada henüz `YOLFI_API_KEY` yoksa ajan, ajan kayıt endpointi üzerinden çalışma alanı kaydedebilir:
 
@@ -180,10 +178,11 @@ Yolfi Agent Kit aynı npm paketinde stdio MCP sunucusu içerir:
 }
 ```
 
-`yolfi-api` araçları Yolfi API'yi çağırır ve `YOLFI_API_KEY` gerektirir. `yolfi-knowledge` kaynakları, anahtar yokken ajanın entegrasyon yolunu anlamasına yardım eder.
+`yolfi_agent_register` herkese açık ajan kayıt endpointini çağırır ve `YOLFI_API_KEY` gerektirmez. Özel `yolfi-api` araçları, kayıt sonrasında dönen API anahtarını gerektirir. `yolfi-knowledge` kaynakları, anahtar yokken ajanın entegrasyon yolunu anlamasına yardım eder.
 
 Kullanılabilir MCP araçları:
 
+- `yolfi_agent_register`
 - `yolfi_auth_status`
 - `yolfi_organization_get`
 - `yolfi_organization_update`
@@ -250,7 +249,7 @@ Yolfi Agent Kit ikinci bir `/api/agent/*` API oluşturmaz. Ajan eylemlerini mevc
 
 | Ajan eylemi | API endpointi | Kimlik doğrulama |
 | --- | --- | --- |
-| Yolfi çalışma alanı kaydet | `POST /api/auth/agent/register` | public |
+| Yolfi çalışma alanı kaydet | `POST /api/auth/agent/register` | public; API anahtarı gerekmez |
 | Hesabı kontrol et | `GET /api/private/organization/current` | bearer API key |
 | Organizasyon, webhook, ödeme aktarımı cüzdanlarını yapılandır | `PUT /api/private/organization/current` | bearer API key |
 | API anahtarı durumunu al | `GET /api/private/organization/api-key` | bearer API key veya cookie |
