@@ -1,0 +1,23 @@
+FROM registry.access.redhat.com/ubi9/nodejs-22
+
+WORKDIR /opt/app-root/src
+
+# Copy package.json first for layer caching
+COPY package.json ./
+
+# Install production dependencies (none currently, but future-proofs the image)
+RUN npm ci --production --ignore-scripts 2>/dev/null || echo "No dependencies to install"
+
+# Copy application source and supporting files
+COPY src/ ./src/
+COPY examples/ ./examples/
+COPY SKILL.md server.json glama.json ./
+
+# Fix permissions for OpenShift (arbitrary user support)
+USER 0
+RUN chgrp -R 0 /opt/app-root/src && chmod -R g=u /opt/app-root/src
+USER 1001
+
+# No EXPOSE - stdio transport only
+
+ENTRYPOINT ["node", "src/cli.js", "mcp"]

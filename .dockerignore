@@ -12,3 +12,11 @@ AI
 coverage
 dist
 .DS_Store
+test
+docs
+assets
+kubernetes
+poc-plan.md
+poc-report.md
+Dockerfile
+Dockerfile.ubi
