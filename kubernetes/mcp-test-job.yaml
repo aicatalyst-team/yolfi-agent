@@ -1,0 +1,195 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: yolfi-mcp-test
+  namespace: poc-yolfi-agent
+  labels:
+    app: yolfi-agent
+    autopoc/test: "true"
+spec:
+  backoffLimit: 0
+  ttlSecondsAfterFinished: 3600
+  template:
+    metadata:
+      labels:
+        app: yolfi-agent
+        autopoc/test: "true"
+    spec:
+      serviceAccountName: mcp-test-runner
+      restartPolicy: Never
+      containers:
+        - name: mcp-test
+          image: quay.io/aicatalyst/yolfi-agent:latest
+          command: ["/bin/bash", "-c"]
+          args:
+            - |
+              # MCP protocol test script
+              # Sends JSON-RPC messages to the MCP server via stdio and captures responses
+              
+              RESULTS_FILE="/tmp/mcp-results.json"
+              echo '{"test_run": "yolfi-agent-mcp-test", "timestamp": "'$(date -u +%Y-%m-%dT%H:%M:%SZ)'", "results": [' > "$RESULTS_FILE"
+              
+              # Function to send a JSON-RPC message and capture response
+              # Uses timeout to handle the stdio interaction
+              send_mcp_message() {
+                local msg="$1"
+                local label="$2"
+                local timeout_sec="${3:-10}"
+                
+                echo ">>> Sending: $label"
+                
+                # Use a subshell + timeout: pipe the message to node, read one line of response
+                RESPONSE=$(echo "$msg" | timeout "$timeout_sec" node src/cli.js mcp 2>/dev/null | head -1)
+                
+                if [ -z "$RESPONSE" ]; then
+                  echo '{"scenario": "'"$label"'", "status": "fail", "error": "No response received within '"$timeout_sec"'s", "response": null}'
+                  return 1
+                fi
+                
+                echo "<<< Response: $RESPONSE"
+                echo '{"scenario": "'"$label"'", "status": "pass", "error": null, "response": '"$RESPONSE"'}'
+                return 0
+              }
+              
+              # Test 1: MCP Initialize
+              echo "=== Test 1: MCP Initialize ==="
+              INIT_MSG='{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"autopoc-test","version":"1.0"}}}'
+              RESULT1=$(send_mcp_message "$INIT_MSG" "mcp-initialize" 15)
+              RC1=$?
+              echo "$RESULT1" | tail -1 >> "$RESULTS_FILE"
+              echo ',' >> "$RESULTS_FILE"
+              
+              # Test 2: Tools List
+              echo "=== Test 2: Tools List ==="
+              # Send initialize + tools/list together (server needs init first)
+              TOOLS_MSGS='{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"autopoc-test","version":"1.0"}}}
+              {"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}'
+              
+              TOOLS_RESPONSE=$(echo "$TOOLS_MSGS" | timeout 15 node src/cli.js mcp 2>/dev/null)
+              # Get the second line (tools/list response)
+              TOOLS_LINE=$(echo "$TOOLS_RESPONSE" | sed -n '2p')
+              
+              if [ -z "$TOOLS_LINE" ]; then
+                RESULT2='{"scenario": "tools-list", "status": "fail", "error": "No tools/list response", "response": null}'
+              else
+                # Count tools using basic parsing
+                TOOL_COUNT=$(echo "$TOOLS_LINE" | python3 -c "import sys,json; r=json.load(sys.stdin); print(len(r.get('result',{}).get('tools',[])))" 2>/dev/null || echo "0")
+                echo "<<< Tools count: $TOOL_COUNT"
+                if [ "$TOOL_COUNT" -gt 0 ]; then
+                  # Extract tool names
+                  TOOL_NAMES=$(echo "$TOOLS_LINE" | python3 -c "import sys,json; r=json.load(sys.stdin); tools=r.get('result',{}).get('tools',[]); print(', '.join([t['name'] for t in tools[:5]]))" 2>/dev/null || echo "unknown")
+                  RESULT2='{"scenario": "tools-list", "status": "pass", "error": null, "tool_count": '"$TOOL_COUNT"', "sample_tools": "'"$TOOL_NAMES"'", "response": "truncated-see-tool_count"}'
+                else
+                  RESULT2='{"scenario": "tools-list", "status": "fail", "error": "No tools returned or parse error", "response": null}'
+                fi
+              fi
+              echo "$RESULT2" >> "$RESULTS_FILE"
+              echo ',' >> "$RESULTS_FILE"
+              
+              # Test 3: Ping
+              echo "=== Test 3: Ping ==="
+              # Send initialize + ping together
+              PING_MSGS='{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"autopoc-test","version":"1.0"}}}
+              {"jsonrpc":"2.0","id":3,"method":"ping"}'
+              
+              PING_RESPONSE=$(echo "$PING_MSGS" | timeout 10 node src/cli.js mcp 2>/dev/null)
+              PING_LINE=$(echo "$PING_RESPONSE" | sed -n '2p')
+              
+              if [ -z "$PING_LINE" ]; then
+                RESULT3='{"scenario": "ping-response", "status": "fail", "error": "No ping response", "response": null}'
+              else
+                # Check if result is empty object
+                HAS_RESULT=$(echo "$PING_LINE" | python3 -c "import sys,json; r=json.load(sys.stdin); print('pass' if r.get('result') == {} else 'fail')" 2>/dev/null || echo "fail")
+                if [ "$HAS_RESULT" = "pass" ]; then
+                  RESULT3='{"scenario": "ping-response", "status": "pass", "error": null, "response": '"$PING_LINE"'}'
+                else
+                  RESULT3='{"scenario": "ping-response", "status": "fail", "error": "Unexpected ping response", "response": '"$PING_LINE"'}'
+                fi
+              fi
+              echo "$RESULT3" >> "$RESULTS_FILE"
+              
+              # Close JSON array
+              echo ']}' >> "$RESULTS_FILE"
+              
+              # Fix trailing commas in JSON (replace ,\n]} with \n]})
+              python3 -c "
+              import json, sys
+              with open('$RESULTS_FILE') as f:
+                  raw = f.read()
+              # Fix: remove trailing commas before ]}
+              import re
+              raw = re.sub(r',\s*\]', ']', raw)
+              data = json.loads(raw)
+              clean = json.dumps(data, indent=2)
+              print(clean)
+              with open('$RESULTS_FILE', 'w') as f:
+                  f.write(clean)
+              " 2>/dev/null || echo "Warning: JSON cleanup failed"
+              
+              echo ""
+              echo "=== Final Results ==="
+              cat "$RESULTS_FILE"
+              
+              # Write results to ConfigMap using the Kubernetes API
+              # The service account has RBAC to create/update configmaps
+              TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
+              NAMESPACE=$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace)
+              CA_CERT=/var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+              API_SERVER="https://kubernetes.default.svc"
+              
+              # Read and escape the results for JSON embedding
+              ESCAPED_RESULTS=$(python3 -c "
+              import json
+              with open('$RESULTS_FILE') as f:
+                  data = f.read()
+              print(json.dumps(data))
+              " 2>/dev/null)
+              
+              # Create ConfigMap via API
+              curl -s --cacert "$CA_CERT" \
+                -X POST \
+                -H "Authorization: Bearer $TOKEN" \
+                -H "Content-Type: application/json" \
+                "$API_SERVER/api/v1/namespaces/$NAMESPACE/configmaps" \
+                -d '{
+                  "apiVersion": "v1",
+                  "kind": "ConfigMap",
+                  "metadata": {
+                    "name": "mcp-test-results",
+                    "namespace": "'"$NAMESPACE"'",
+                    "labels": {
+                      "app": "yolfi-agent",
+                      "autopoc/test-results": "true"
+                    }
+                  },
+                  "data": {
+                    "results.json": '"$ESCAPED_RESULTS"'
+                  }
+                }' > /dev/null 2>&1
+              
+              echo ""
+              echo "Results written to ConfigMap mcp-test-results"
+              
+              # Determine overall exit code
+              FAIL_COUNT=$(python3 -c "
+              import json
+              with open('$RESULTS_FILE') as f:
+                  data = json.load(f)
+              fails = [r for r in data['results'] if r['status'] != 'pass']
+              print(len(fails))
+              " 2>/dev/null || echo "1")
+              
+              if [ "$FAIL_COUNT" = "0" ]; then
+                echo "ALL TESTS PASSED"
+                exit 0
+              else
+                echo "$FAIL_COUNT test(s) failed"
+                exit 0  # Still exit 0 so job completes - we read results from ConfigMap
+              fi
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
